@@ -17,6 +17,27 @@ SEARCH_TERMS = [
     "psychiatry",
 ]
 
+# Exclude jobs with these terms in the title (case-insensitive)
+EXCLUDED_TITLES = [
+    "nurse practitioner",
+    "np ",
+    " np",
+    "aprn",
+    "registered nurse",
+    " rn ",
+    " rn,",
+]
+
+def should_exclude_job(title):
+    """Check if a job should be excluded based on title."""
+    if not title:
+        return False
+    title_lower = title.lower()
+    for excluded in EXCLUDED_TITLES:
+        if excluded in title_lower:
+            return True
+    return False
+
 def generate_external_id(job):
     """Generate a unique ID for a job based on its key attributes."""
     unique_string = f"{job.get('title', '')}{job.get('company', '')}{job.get('location', '')}{job.get('job_url', '')}"
@@ -74,8 +95,10 @@ def scrape_all_locations():
             jobs = scrape_location(location, search_term)
 
             for job in jobs:
-                # Deduplicate by external_id
+                # Deduplicate by external_id and filter excluded titles
                 if job['external_id'] not in seen_ids:
+                    if should_exclude_job(job.get('title')):
+                        continue
                     seen_ids.add(job['external_id'])
                     all_jobs.append(job)
 
