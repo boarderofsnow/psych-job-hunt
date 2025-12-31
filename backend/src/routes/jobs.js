@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
     // Pagination
     const offset = (parseInt(page) - 1) * parseInt(limit);
     query = query
-      .order('date_scraped', { ascending: false })
+      .order('date_posted', { ascending: false, nullsFirst: false })
       .range(offset, offset + parseInt(limit) - 1);
 
     const { data, error, count } = await query;
