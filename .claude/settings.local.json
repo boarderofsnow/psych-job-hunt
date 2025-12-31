@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npx create-react-app . --template cra-template)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
