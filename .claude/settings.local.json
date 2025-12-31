@@ -3,7 +3,12 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(npx create-react-app . --template cra-template)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Psychiatry job search app\n\n- React frontend with job listing, favorites, and application tracking\n- Node.js/Express backend with Supabase integration\n- Python scraper using JobSpy for Indeed, LinkedIn, Glassdoor\n- Daily scheduled scraping via node-cron\nEOF\n\\)\")",
+      "Bash(git remote:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
