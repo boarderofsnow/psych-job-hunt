@@ -160,9 +160,15 @@ function JobList() {
                   onClick={() => navigate(`/job/${job.id}`)}
                 >
                   <div className="job-card-header">
-                    <div>
+                    <div className="job-card-content">
                       <h3 className="job-title">{job.title}</h3>
                       <p className="job-company">{job.company}</p>
+                      <p className="job-location">{job.location}</p>
+                      <div className="job-meta">
+                        <span>{job.source}</span>
+                        <span>{formatDate(job.date_posted)}</span>
+                        {salary && <span className="job-salary">{salary.replace('$', '')}</span>}
+                      </div>
                     </div>
                     <div className="job-actions">
                       <span className={`status-badge status-${status}`}>{status}</span>
@@ -173,12 +179,6 @@ function JobList() {
                         {isFavorite ? '♥' : '♡'}
                       </button>
                     </div>
-                  </div>
-                  <div className="job-meta">
-                    <span>{job.location}</span>
-                    <span>{job.source}</span>
-                    <span>{formatDate(job.date_posted)}</span>
-                    {salary && <span className="salary">{salary}</span>}
                   </div>
                 </div>
               );
