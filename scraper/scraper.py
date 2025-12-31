@@ -27,6 +27,13 @@ EXCLUDED_TITLES = [
     " rn ",
     " rn,",
     "psychologist",
+    "social worker",
+    "nurse",
+    "nursing",
+    "counselor",
+    "counseler",
+    "neurologist",
+    "epileptologist",
 ]
 
 def should_exclude_job(title):
