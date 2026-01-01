@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getJobs, toggleFavorite, triggerScrape, getScrapeStatus } from '../services/api';
 
@@ -22,12 +22,7 @@ function JobList() {
   const [scrapeStatus, setScrapeStatus] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchJobs();
-    fetchScrapeStatus();
-  }, [page, location]);
-
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
       const params = { page, limit: 20 };
@@ -43,7 +38,12 @@ function JobList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, location, search]);
+
+  useEffect(() => {
+    fetchJobs();
+    fetchScrapeStatus();
+  }, [fetchJobs]);
 
   const fetchScrapeStatus = async () => {
     try {
