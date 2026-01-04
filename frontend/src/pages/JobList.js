@@ -62,9 +62,12 @@ function JobList() {
 
   const handleFavorite = async (e, jobId) => {
     e.stopPropagation();
+    e.preventDefault();
+    console.log('Favorite clicked for job:', jobId);
     try {
-      await toggleFavorite(jobId);
-      fetchJobs();
+      const result = await toggleFavorite(jobId);
+      console.log('Favorite toggled:', result);
+      await fetchJobs();
     } catch (err) {
       console.error('Failed to toggle favorite:', err);
     }
