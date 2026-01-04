@@ -29,9 +29,7 @@ function JobList() {
       if (location) params.location = location;
       if (search) params.search = search;
 
-      console.log('Fetching jobs with params:', params);
       const data = await getJobs(params);
-      console.log('Jobs fetched, first job user_jobs:', data.jobs?.[0]?.user_jobs);
       setJobs(data.jobs || []);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -65,11 +63,8 @@ function JobList() {
   const handleFavorite = async (e, jobId) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log('Favorite clicked for job:', jobId);
     try {
       const result = await toggleFavorite(jobId);
-      console.log('Favorite toggled:', result);
-      // Update local state immediately
       setJobs(prevJobs => prevJobs.map(job => {
         if (job.id === jobId) {
           return {
