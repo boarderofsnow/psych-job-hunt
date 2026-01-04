@@ -29,7 +29,9 @@ function JobList() {
       if (location) params.location = location;
       if (search) params.search = search;
 
+      console.log('Fetching jobs with params:', params);
       const data = await getJobs(params);
+      console.log('Jobs fetched, first job user_jobs:', data.jobs?.[0]?.user_jobs);
       setJobs(data.jobs || []);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -67,7 +69,16 @@ function JobList() {
     try {
       const result = await toggleFavorite(jobId);
       console.log('Favorite toggled:', result);
-      await fetchJobs();
+      // Update local state immediately
+      setJobs(prevJobs => prevJobs.map(job => {
+        if (job.id === jobId) {
+          return {
+            ...job,
+            user_jobs: [result]
+          };
+        }
+        return job;
+      }));
     } catch (err) {
       console.error('Failed to toggle favorite:', err);
     }
