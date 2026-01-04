@@ -14,19 +14,10 @@ router.get('/', async (req, res) => {
       limit = 20
     } = req.query;
 
+    // Build jobs query
     let query = supabase
       .from('jobs')
-      .select(`
-        *,
-        user_jobs (
-          id,
-          is_favorite,
-          status,
-          notes,
-          applied_date,
-          updated_at
-        )
-      `, { count: 'exact' });
+      .select('*', { count: 'exact' });
 
     // Apply filters
     if (location) {
@@ -43,14 +34,27 @@ router.get('/', async (req, res) => {
       .order('date_posted', { ascending: false, nullsFirst: false })
       .range(offset, offset + parseInt(limit) - 1);
 
-    const { data, error, count } = await query;
+    const { data: jobs, error: jobsError, count } = await query;
 
-    console.log('Jobs query result - first job:', JSON.stringify(data?.[0], null, 2));
+    if (jobsError) throw jobsError;
 
-    if (error) throw error;
+    // Get all user_jobs for these jobs
+    const jobIds = jobs.map(j => j.id);
+    const { data: userJobs, error: userJobsError } = await supabase
+      .from('user_jobs')
+      .select('*')
+      .in('job_id', jobIds);
 
-    // Post-filter for status and favorites (since they're in user_jobs)
-    let filteredData = data;
+    if (userJobsError) throw userJobsError;
+
+    // Merge user_jobs into jobs
+    const jobsWithUserData = jobs.map(job => ({
+      ...job,
+      user_jobs: userJobs.filter(uj => uj.job_id === job.id)
+    }));
+
+    // Post-filter for status and favorites
+    let filteredData = jobsWithUserData;
     if (status) {
       filteredData = filteredData.filter(job =>
         job.user_jobs?.[0]?.status === status
@@ -79,28 +83,30 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
+    // Get job
+    const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .select(`
-        *,
-        user_jobs (
-          id,
-          is_favorite,
-          status,
-          notes,
-          applied_date,
-          updated_at
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
-    if (error) throw error;
-    if (!data) {
+    if (jobError) throw jobError;
+    if (!job) {
       return res.status(404).json({ error: 'Job not found' });
     }
 
-    res.json(data);
+    // Get user_jobs for this job
+    const { data: userJobs, error: userJobsError } = await supabase
+      .from('user_jobs')
+      .select('*')
+      .eq('job_id', id);
+
+    if (userJobsError) throw userJobsError;
+
+    res.json({
+      ...job,
+      user_jobs: userJobs || []
+    });
   } catch (error) {
     console.error('Error fetching job:', error);
     res.status(500).json({ error: 'Failed to fetch job' });
