@@ -115,7 +115,7 @@ router.post('/:id/favorite', async (req, res) => {
       .from('user_jobs')
       .select('*')
       .eq('job_id', id)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       // Toggle favorite
@@ -169,7 +169,7 @@ router.put('/:id/status', async (req, res) => {
       .from('user_jobs')
       .select('*')
       .eq('job_id', id)
-      .single();
+      .maybeSingle();
 
     const updateData = {
       status,
@@ -218,7 +218,7 @@ router.put('/:id/notes', async (req, res) => {
       .from('user_jobs')
       .select('*')
       .eq('job_id', id)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       const { data, error } = await supabase
