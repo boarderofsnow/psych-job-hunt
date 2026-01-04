@@ -45,6 +45,8 @@ router.get('/', async (req, res) => {
 
     const { data, error, count } = await query;
 
+    console.log('Jobs query result - first job:', JSON.stringify(data?.[0], null, 2));
+
     if (error) throw error;
 
     // Post-filter for status and favorites (since they're in user_jobs)
