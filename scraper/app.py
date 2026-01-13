@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from scraper import scrape_all_locations
@@ -5,6 +6,8 @@ import traceback
 
 app = Flask(__name__)
 CORS(app)
+
+PORT = int(os.environ.get('PORT', 5001))
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -31,4 +34,4 @@ def scrape():
         }), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=PORT, debug=False)
