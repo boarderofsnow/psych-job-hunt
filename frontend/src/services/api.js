@@ -33,9 +33,9 @@ export const updateNotes = async (id, notes) => {
   return response.data;
 };
 
-// Scraper API
+// Scraper API - longer timeout for scraping (5 minutes)
 export const triggerScrape = async () => {
-  const response = await api.post('/scrape');
+  const response = await api.post('/scrape', {}, { timeout: 300000 });
   return response.data;
 };
 

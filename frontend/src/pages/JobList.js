@@ -82,12 +82,13 @@ function JobList() {
   const handleScrape = async () => {
     try {
       setScraping(true);
-      await triggerScrape();
+      const result = await triggerScrape();
       await fetchJobs();
       await fetchScrapeStatus();
+      alert(`Scrape complete! Found ${result.jobs_found} jobs, added ${result.jobs_inserted} new.`);
     } catch (err) {
       console.error('Scrape failed:', err);
-      alert('Scrape failed. Make sure the Python scraper service is running.');
+      alert('Scrape failed. Please try again.');
     } finally {
       setScraping(false);
     }
@@ -128,7 +129,7 @@ function JobList() {
             onClick={handleScrape}
             disabled={scraping}
           >
-            {scraping ? 'Scraping...' : 'Scrape Now'}
+            {scraping ? 'Scraping (2-3 min)...' : 'Scrape Now'}
           </button>
         </div>
       )}
