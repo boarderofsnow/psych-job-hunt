@@ -9,6 +9,7 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
   try {
     const {
       location,
+      locations,
       status,
       favorite,
       search,
@@ -23,7 +24,12 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
 
     // Apply filters
     if (location) {
+      // Single location filter
       query = query.eq('search_location', location);
+    } else if (locations) {
+      // Multiple locations filter (comma-separated)
+      const locationList = locations.split(',').map(l => l.trim());
+      query = query.in('search_location', locationList);
     }
 
     if (search) {

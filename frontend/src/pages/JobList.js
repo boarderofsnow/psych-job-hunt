@@ -1,14 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getJobs, toggleFavorite, triggerScrape, getScrapeStatus } from '../services/api';
-
-const LOCATIONS = [
-  'Madison, WI',
-  'Boulder, CO',
-  'Fort Collins, CO',
-  'Raleigh, NC',
-  'Durham, NC'
-];
+import { getJobs, toggleFavorite, triggerScrape, getScrapeStatus, getPreferences } from '../services/api';
 
 function JobList() {
   const [jobs, setJobs] = useState([]);
@@ -16,11 +8,25 @@ function JobList() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [location, setLocation] = useState('');
+  const [userLocations, setUserLocations] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [scraping, setScraping] = useState(false);
   const [scrapeStatus, setScrapeStatus] = useState(null);
   const navigate = useNavigate();
+
+  // Fetch user's location preferences
+  useEffect(() => {
+    const fetchUserPreferences = async () => {
+      try {
+        const prefs = await getPreferences();
+        setUserLocations(prefs.locations || []);
+      } catch (err) {
+        console.error('Failed to fetch preferences:', err);
+      }
+    };
+    fetchUserPreferences();
+  }, []);
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -28,6 +34,10 @@ function JobList() {
       const params = { page, limit: 20 };
       if (location) params.location = location;
       if (search) params.search = search;
+      // Pass user's preferred locations to filter jobs
+      if (userLocations.length > 0 && !location) {
+        params.locations = userLocations.join(',');
+      }
 
       const data = await getJobs(params);
       setJobs(data.jobs || []);
@@ -38,12 +48,14 @@ function JobList() {
     } finally {
       setLoading(false);
     }
-  }, [page, location, search]);
+  }, [page, location, search, userLocations]);
 
   useEffect(() => {
-    fetchJobs();
+    if (userLocations.length > 0) {
+      fetchJobs();
+    }
     fetchScrapeStatus();
-  }, [fetchJobs]);
+  }, [fetchJobs, userLocations]);
 
   const fetchScrapeStatus = async () => {
     try {
@@ -142,8 +154,8 @@ function JobList() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <select value={location} onChange={(e) => { setLocation(e.target.value); setPage(1); }}>
-          <option value="">All Locations</option>
-          {LOCATIONS.map(loc => (
+          <option value="">All My Locations</option>
+          {userLocations.map(loc => (
             <option key={loc} value={loc}>{loc}</option>
           ))}
         </select>
