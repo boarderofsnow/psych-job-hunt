@@ -8,7 +8,9 @@ LOCATIONS = [
     "Boulder, CO",
     "Fort Collins, CO",
     "Raleigh, NC",
-    "Durham, NC"
+    "Durham, NC",
+    "Atlanta, GA",
+    "Macon, GA"
 ]
 
 # Search terms for psychiatry positions

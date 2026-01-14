@@ -15,6 +15,8 @@ function JobList() {
   const [scrapeStatus, setScrapeStatus] = useState(null);
   const navigate = useNavigate();
 
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+
   // Fetch user's location preferences
   useEffect(() => {
     const fetchUserPreferences = async () => {
@@ -23,12 +25,16 @@ function JobList() {
         setUserLocations(prefs.locations || []);
       } catch (err) {
         console.error('Failed to fetch preferences:', err);
+      } finally {
+        setPrefsLoaded(true);
       }
     };
     fetchUserPreferences();
   }, []);
 
   const fetchJobs = useCallback(async () => {
+    if (!prefsLoaded) return;
+
     try {
       setLoading(true);
       const params = { page, limit: 20 };
@@ -48,14 +54,14 @@ function JobList() {
     } finally {
       setLoading(false);
     }
-  }, [page, location, search, userLocations]);
+  }, [page, location, search, userLocations, prefsLoaded]);
 
   useEffect(() => {
-    if (userLocations.length > 0) {
+    if (prefsLoaded) {
       fetchJobs();
+      fetchScrapeStatus();
     }
-    fetchScrapeStatus();
-  }, [fetchJobs, userLocations]);
+  }, [fetchJobs, prefsLoaded]);
 
   const fetchScrapeStatus = async () => {
     try {
