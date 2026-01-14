@@ -64,8 +64,8 @@ def scrape_location(location, search_term):
             site_name=["indeed", "linkedin", "glassdoor"],
             search_term=search_term,
             location=location,
-            results_wanted=50,
-            hours_old=168,  # Last 7 days
+            results_wanted=25,
+            hours_old=72,  # Last 3 days
             country_indeed='USA'
         )
 
