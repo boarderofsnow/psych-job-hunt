@@ -27,8 +27,8 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
       // Single location filter
       query = query.eq('search_location', location);
     } else if (locations) {
-      // Multiple locations filter (comma-separated)
-      const locationList = locations.split(',').map(l => l.trim());
+      // Multiple locations filter (pipe-separated since locations contain commas)
+      const locationList = locations.split('|').map(l => l.trim());
       query = query.in('search_location', locationList);
     }
 

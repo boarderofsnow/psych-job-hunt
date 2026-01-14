@@ -40,9 +40,9 @@ function JobList() {
       const params = { page, limit: 20 };
       if (location) params.location = location;
       if (search) params.search = search;
-      // Pass user's preferred locations to filter jobs
+      // Pass user's preferred locations to filter jobs (use | delimiter since locations contain commas)
       if (userLocations.length > 0 && !location) {
-        params.locations = userLocations.join(',');
+        params.locations = userLocations.join('|');
       }
 
       const data = await getJobs(params);
