@@ -10,7 +10,9 @@ LOCATIONS = [
     "Raleigh, NC",
     "Durham, NC",
     "Atlanta, GA",
-    "Macon, GA"
+    "Macon, GA",
+    "Minneapolis, MN",
+    "Chicago, IL"
 ]
 
 # Search terms for psychiatry positions
