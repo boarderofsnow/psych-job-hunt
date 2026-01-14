@@ -1,10 +1,24 @@
 import axios from 'axios';
+import { supabase } from './supabase';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
   timeout: 30000,
+});
+
+// Add auth token to requests
+api.interceptors.request.use(async (config) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      config.headers.Authorization = `Bearer ${session.access_token}`;
+    }
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+  }
+  return config;
 });
 
 // Jobs API
@@ -41,6 +55,22 @@ export const triggerScrape = async () => {
 
 export const getScrapeStatus = async () => {
   const response = await api.get('/scrape/status');
+  return response.data;
+};
+
+// Preferences API
+export const getPreferences = async () => {
+  const response = await api.get('/preferences');
+  return response.data;
+};
+
+export const updatePreferences = async (locations) => {
+  const response = await api.put('/preferences', { locations });
+  return response.data;
+};
+
+export const getAvailableLocations = async () => {
+  const response = await api.get('/preferences/locations');
   return response.data;
 };
 

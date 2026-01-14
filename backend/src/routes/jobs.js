@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
+const { authMiddleware, optionalAuthMiddleware } = require('../middleware/auth');
 
 // GET /api/jobs - List all jobs with filters
-router.get('/', async (req, res) => {
+// Uses optional auth - shows all jobs, but user_jobs only for authenticated users
+router.get('/', optionalAuthMiddleware, async (req, res) => {
   try {
     const {
       location,
@@ -38,14 +40,19 @@ router.get('/', async (req, res) => {
 
     if (jobsError) throw jobsError;
 
-    // Get all user_jobs for these jobs
-    const jobIds = jobs.map(j => j.id);
-    const { data: userJobs, error: userJobsError } = await supabase
-      .from('user_jobs')
-      .select('*')
-      .in('job_id', jobIds);
+    // Get user_jobs for these jobs (only if authenticated)
+    let userJobs = [];
+    if (req.userId && jobs.length > 0) {
+      const jobIds = jobs.map(j => j.id);
+      const { data, error: userJobsError } = await supabase
+        .from('user_jobs')
+        .select('*')
+        .eq('user_id', req.userId)
+        .in('job_id', jobIds);
 
-    if (userJobsError) throw userJobsError;
+      if (userJobsError) throw userJobsError;
+      userJobs = data || [];
+    }
 
     // Merge user_jobs into jobs
     const jobsWithUserData = jobs.map(job => ({
@@ -79,7 +86,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/jobs/:id - Get single job
-router.get('/:id', async (req, res) => {
+router.get('/:id', optionalAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -95,17 +102,22 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Job not found' });
     }
 
-    // Get user_jobs for this job
-    const { data: userJobs, error: userJobsError } = await supabase
-      .from('user_jobs')
-      .select('*')
-      .eq('job_id', id);
+    // Get user_jobs for this job (only if authenticated)
+    let userJobs = [];
+    if (req.userId) {
+      const { data, error: userJobsError } = await supabase
+        .from('user_jobs')
+        .select('*')
+        .eq('job_id', id)
+        .eq('user_id', req.userId);
 
-    if (userJobsError) throw userJobsError;
+      if (userJobsError) throw userJobsError;
+      userJobs = data || [];
+    }
 
     res.json({
       ...job,
-      user_jobs: userJobs || []
+      user_jobs: userJobs
     });
   } catch (error) {
     console.error('Error fetching job:', error);
@@ -113,16 +125,17 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/jobs/:id/favorite - Toggle favorite
-router.post('/:id/favorite', async (req, res) => {
+// POST /api/jobs/:id/favorite - Toggle favorite (requires auth)
+router.post('/:id/favorite', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if user_jobs record exists
+    // Check if user_jobs record exists for this user
     const { data: existing } = await supabase
       .from('user_jobs')
       .select('*')
       .eq('job_id', id)
+      .eq('user_id', req.userId)
       .maybeSingle();
 
     if (existing) {
@@ -134,6 +147,7 @@ router.post('/:id/favorite', async (req, res) => {
           updated_at: new Date().toISOString()
         })
         .eq('job_id', id)
+        .eq('user_id', req.userId)
         .select()
         .single();
 
@@ -145,6 +159,7 @@ router.post('/:id/favorite', async (req, res) => {
         .from('user_jobs')
         .insert({
           job_id: parseInt(id),
+          user_id: req.userId,
           is_favorite: true,
           status: 'new',
           updated_at: new Date().toISOString()
@@ -161,8 +176,8 @@ router.post('/:id/favorite', async (req, res) => {
   }
 });
 
-// PUT /api/jobs/:id/status - Update application status
-router.put('/:id/status', async (req, res) => {
+// PUT /api/jobs/:id/status - Update application status (requires auth)
+router.put('/:id/status', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -172,11 +187,12 @@ router.put('/:id/status', async (req, res) => {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
-    // Check if user_jobs record exists
+    // Check if user_jobs record exists for this user
     const { data: existing } = await supabase
       .from('user_jobs')
       .select('*')
       .eq('job_id', id)
+      .eq('user_id', req.userId)
       .maybeSingle();
 
     const updateData = {
@@ -190,6 +206,7 @@ router.put('/:id/status', async (req, res) => {
         .from('user_jobs')
         .update(updateData)
         .eq('job_id', id)
+        .eq('user_id', req.userId)
         .select()
         .single();
 
@@ -200,6 +217,7 @@ router.put('/:id/status', async (req, res) => {
         .from('user_jobs')
         .insert({
           job_id: parseInt(id),
+          user_id: req.userId,
           is_favorite: false,
           ...updateData
         })
@@ -215,17 +233,18 @@ router.put('/:id/status', async (req, res) => {
   }
 });
 
-// PUT /api/jobs/:id/notes - Update notes
-router.put('/:id/notes', async (req, res) => {
+// PUT /api/jobs/:id/notes - Update notes (requires auth)
+router.put('/:id/notes', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { notes } = req.body;
 
-    // Check if user_jobs record exists
+    // Check if user_jobs record exists for this user
     const { data: existing } = await supabase
       .from('user_jobs')
       .select('*')
       .eq('job_id', id)
+      .eq('user_id', req.userId)
       .maybeSingle();
 
     if (existing) {
@@ -236,6 +255,7 @@ router.put('/:id/notes', async (req, res) => {
           updated_at: new Date().toISOString()
         })
         .eq('job_id', id)
+        .eq('user_id', req.userId)
         .select()
         .single();
 
@@ -246,6 +266,7 @@ router.put('/:id/notes', async (req, res) => {
         .from('user_jobs')
         .insert({
           job_id: parseInt(id),
+          user_id: req.userId,
           is_favorite: false,
           status: 'new',
           notes,

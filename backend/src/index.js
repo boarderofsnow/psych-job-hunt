@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const jobRoutes = require('./routes/jobs');
 const scraperRoutes = require('./routes/scraper');
+const preferencesRoutes = require('./routes/preferences');
 const { initScheduler } = require('./scheduler/cron');
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(express.json());
 // Routes
 app.use('/api/jobs', jobRoutes);
 app.use('/api/scrape', scraperRoutes);
+app.use('/api/preferences', preferencesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
