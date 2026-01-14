@@ -104,6 +104,8 @@ router.get('/locations', async (req, res) => {
       'Fort Collins, CO',
       'Raleigh, NC',
       'Durham, NC',
+      'Atlanta, GA',
+      'Macon, GA',
       'Austin, TX',
       'Denver, CO',
       'Seattle, WA',
