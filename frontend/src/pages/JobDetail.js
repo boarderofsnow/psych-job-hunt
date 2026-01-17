@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getJob, toggleFavorite, updateStatus, updateNotes } from '../services/api';
 
@@ -12,11 +12,7 @@ function JobDetail() {
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchJob();
-  }, [id]);
-
-  const fetchJob = async () => {
+  const fetchJob = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getJob(id);
@@ -28,7 +24,11 @@ function JobDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchJob();
+  }, [fetchJob]);
 
   const handleFavorite = async () => {
     try {
