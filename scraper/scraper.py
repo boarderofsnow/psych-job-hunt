@@ -5,6 +5,8 @@ from datetime import datetime
 # Target locations for psychiatry jobs
 LOCATIONS = [
     "Madison, WI",
+    "Waukesha, WI",
+    "Milwaukee, WI",
     "Boulder, CO",
     "Fort Collins, CO",
     "Raleigh, NC",

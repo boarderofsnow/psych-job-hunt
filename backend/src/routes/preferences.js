@@ -100,6 +100,8 @@ router.get('/locations', async (req, res) => {
   res.json({
     available: [
       'Madison, WI',
+      'Waukesha, WI',
+      'Milwaukee, WI',
       'Boulder, CO',
       'Fort Collins, CO',
       'Raleigh, NC',
